@@ -1,14 +1,19 @@
-import { useState } from 'react';
-import { nanoid } from 'nanoid';
+import { useEffect, useState } from 'react';
+// import { nanoid } from 'nanoid';
 import css from './ContactForm.module.css';
 import { useDispatch, useSelector } from 'react-redux';
-import { addContact, getContacts } from 'redux/contactsSlice';
+import { getContacts } from 'redux/contactsSlice';
+import { addContactThunk, getContactsThunk } from 'redux/contactsThunk';
 
 export default function ContactForm() {
   const contacts = useSelector(getContacts);
   const [name, setName] = useState('');
   const [number, setNumber] = useState('');
   const dispatch = useDispatch();
+
+  useEffect(() => {
+    dispatch(getContactsThunk());
+  }, [dispatch]);
 
   const onInputHandler = evt => {
     const { value } = evt.currentTarget;
@@ -31,7 +36,7 @@ export default function ContactForm() {
     const newContact = {
       name,
       number,
-      id: nanoid(),
+      // id: nanoid(),
     };
 
     const existedContact = contacts.find(contact => contact.name === name);
@@ -41,7 +46,7 @@ export default function ContactForm() {
       return;
     }
 
-    dispatch(addContact(newContact));
+    dispatch(addContactThunk(newContact));
   };
 
   const onFormSubmit = e => {

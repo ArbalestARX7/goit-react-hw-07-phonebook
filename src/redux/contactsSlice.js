@@ -1,28 +1,56 @@
 import { createSlice } from '@reduxjs/toolkit';
+import {
+  addContactThunk,
+  getContactsThunk,
+  removeContactThunk,
+} from './contactsThunk';
+
+const handlePanding = state => {
+  state.isLoading = true;
+};
+const handleFulfilled = (state, { payload }) => {
+  state.isLoading = false;
+  state.contacts = payload;
+  state.error = '';
+};
+const handleRejected = (state, { payload }) => {
+  state.isLoading = false;
+  state.error = payload;
+};
+
+const initialState = {
+  contacts: [],
+  isLoading: false,
+  error: '',
+};
 
 export const contactsSlice = createSlice({
   name: 'contacts',
-  initialState: {
-    contacts: [
-      { id: 'id-1', name: 'Rosie Simpson', number: '459-12-56' },
-      { id: 'id-2', name: 'Hermione Kline', number: '443-89-12' },
-      { id: 'id-3', name: 'Eden Clements', number: '645-17-79' },
-      { id: 'id-4', name: 'Annie Copeland', number: '227-91-26' },
-    ],
-  },
+  initialState,
 
-  reducers: {
-    addContact(state, action) {
-      state.contacts.push(action.payload);
-    },
-    removeContact(state, action) {
-      state.contacts = state.contacts.filter(
-        contact => contact.id !== action.payload
-      );
-    },
+  extraReducers: builder => {
+    builder
+      .addCase(getContactsThunk.pending, handlePanding)
+      .addCase(getContactsThunk.fulfilled, handleFulfilled)
+      .addCase(getContactsThunk.rejected, handleRejected)
+      .addCase(addContactThunk.pending, handlePanding)
+      .addCase(addContactThunk.fulfilled, (state, { payload }) => {
+        return {
+          ...state,
+          isLoading: false,
+          error: '',
+          contacts: [...state.contacts, payload],
+        };
+      })
+      .addCase(addContactThunk.rejected, handleRejected)
+      .addCase(removeContactThunk.pending, handlePanding)
+      .addCase(removeContactThunk.fulfilled, (state, { payload }) => {
+        state.contacts = state.contacts.filter(
+          contact => contact.id !== payload.id
+        );
+      })
+      .addCase(removeContactThunk.rejected, handleRejected);
   },
 });
-
-export const { addContact, removeContact } = contactsSlice.actions;
 
 export const getContacts = state => state.contacts.contacts;
